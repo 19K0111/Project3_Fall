@@ -1,0 +1,31 @@
+fun int draw(int x){
+    pen(0);
+    if (x >= 50) {
+        forward(x);
+        right(90);
+        forward(x);
+        right(90);
+        forward(x);
+        right(90);
+        forward(x);
+        right(90);
+    } if (x < 50) {
+        forward(x);
+        left(120);
+        forward(x);
+        left(120);
+        forward(x);
+        left(120);
+    }
+    return 0;
+}
+
+fun int main(){
+    int n;
+    n = 50;
+    putint(draw(n));
+    pen(1);
+    forward(2*n);
+    putint(draw(n-10));    
+    return 0;
+}
