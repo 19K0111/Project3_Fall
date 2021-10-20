@@ -270,8 +270,15 @@ class TestTokenizer:
         nextToken = self.tokens[self.currentIndex]  # 現在のトークンを返し
         return nextToken  # 配列の範囲のチェックはしていない
 
+    def getnextToken(self):
+        nextToken = self.tokens[self.currentIndex+1]  # 現在のトークンを返し
+        return nextToken  # 配列の範囲のチェックはしていない
+
     def currentString(self):
         return self.leximes[self.currentIndex]
+
+    def currentToken(self):
+        return self.tokens[self.currentIndex]
 
 
 next = None  # TCがはいる
@@ -396,10 +403,17 @@ def STMLIST():  # STMLIST -> {STM}
 
 def STM():
     global next, s
-    if next == TC.PUTINT:
+    if next == TC.IDENT:
+        s_next = s.getnextToken()
+        if(s_next == TC.ASSIGN or s_next == TC.SEMI):
+            stmAssign()
+        else:
+            E()
+            if (s.currentToken() != TC.SEMI):
+                unexpectedTokenError()
+            next = s.nextToken()
+    elif next == TC.PUTINT:
         stmPutint()
-    elif next == TC.IDENT:
-        stmAssign()
     elif next == TC.IF:
         stmIf()
     elif next == TC.DO:

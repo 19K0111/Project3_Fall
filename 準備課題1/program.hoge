@@ -22,10 +22,10 @@ fun int draw(int x){
 
 fun int main(){
     int n;
-    n = 50;
-    putint(draw(n));
+    n = 40;
+    draw(n);
     pen(1);
     forward(2*n);
-    putint(draw(n-10));    
+    draw(n+10);    
     return 0;
 }
