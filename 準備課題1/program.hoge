@@ -1,6 +1,7 @@
 fun int draw(int x){
     pen(0);
     if (x >= 50) {
+        // 正方形
         forward(x);
         right(90);
         forward(x);
@@ -10,6 +11,7 @@ fun int draw(int x){
         forward(x);
         right(90);
     } if (x < 50) {
+        // 三角形
         forward(x);
         left(120);
         forward(x);

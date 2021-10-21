@@ -209,6 +209,15 @@ class Tokenizer:
                     self.sb += ch
                     nextState = 3
                     continue
+                if ch == '/':
+                    # self.sb += ch
+                    if(self.reader.nextChar() == '/'):
+                        # コメントの処理
+                        nch = '_'
+                        while(nch != '\n' and nch != '\0'):
+                            nch = self.reader.nextChar()
+                    self.skipWhitespace()
+                    continue
                 if ch == '\0':
                     token = TC.EOF
                     break
