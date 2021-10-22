@@ -50,6 +50,7 @@ class TC(Enum):
     INT = 4
     PUTINT = 5
     IF = 6
+    ELSE = 36
     DO = 7
     WHILE = 8
     FUN = 25
@@ -106,9 +107,9 @@ class Tokenizer:
 
     def setupKeyword(self):
         self.keyTable = {}
-        keys = ["int", "putint", "if", "do", "while", "return", "fun",
+        keys = ["int", "putint", "if", "else", "do", "while", "return", "fun",
                 "up", "down", "forward", "backward", "left", "right", "pen"]
-        tclasses = [TC.INT, TC.PUTINT, TC.IF,
+        tclasses = [TC.INT, TC.PUTINT, TC.IF, TC.ELSE,
                     TC.DO, TC.WHILE, TC.RETURN, TC.FUN, TC.UP, TC.DOWN, TC.FWD, TC.BACK, TC.LEFT, TC.RIGHT, TC.PEN]
         for i in range(len(keys)):
             self.keyTable[keys[i]] = tclasses[i]
@@ -482,6 +483,22 @@ def stmIf():
     STM()
     here = currentCodeAddress() + 1
     codeTable[fj].arg2 = here
+    # else文
+    if next == TC.ELSE:
+        # next = s.nextToken()
+        next = s.getnextToken()
+        if next == TC.IF:
+            # else if
+            next = s.nextToken()
+            stmIf()
+        else:
+            addCode(Mnemonic.J, 0, 0)
+            j = currentCodeAddress()
+            next = s.nextToken()
+            STM()
+            here = currentCodeAddress() + 1
+            codeTable[fj].arg2 += 1
+            codeTable[j].arg2 = here
 
 
 def stmDo():

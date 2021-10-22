@@ -10,7 +10,7 @@ fun int draw(int x){
         right(90);
         forward(x);
         right(90);
-    } if (x < 50) {
+    } else {
         // 三角形
         forward(x);
         left(120);
