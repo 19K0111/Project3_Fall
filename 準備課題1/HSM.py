@@ -73,16 +73,16 @@ class SimpleHSM:
             elif code[pc] == OP.POP.value:
                 sp = sp - code[pc + 2]
             elif code[pc] == OP.AD.value:
-                s[sp-1] = s[sp] + s[sp-1]
+                s[sp-1] = s[sp-1] + s[sp]
                 sp -= 1
             elif code[pc] == OP.SB.value:
-                s[sp-1] = s[sp] - s[sp-1]
+                s[sp-1] = s[sp-1] - s[sp]
                 sp -= 1
             elif code[pc] == OP.ML.value:
-                s[sp-1] = s[sp] * s[sp-1]
+                s[sp-1] = s[sp-1] * s[sp]
                 sp -= 1
             elif code[pc] == OP.DV.value:
-                s[sp-1] = s[sp] / s[sp-1]
+                s[sp-1] = s[sp-1] / s[sp]
                 sp -= 1
             elif code[pc] == OP.WRI.value:
                 print(s[sp])

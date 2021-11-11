@@ -217,8 +217,10 @@ class Tokenizer:
                         nch = '_'
                         while(nch != '\n' and nch != '\0'):
                             nch = self.reader.nextChar()
-                    self.skipWhitespace()
-                    continue
+                        self.skipWhitespace()
+                        continue
+                    else:
+                        self.reader.backChar()
                 if ch == '\0':
                     token = TC.EOF
                     break
@@ -332,11 +334,14 @@ def PROCHEAD():
     table.upLevel()
     proceed(TC.LPAR)
     proceedOnly()
-    if next == TC.INT:
-        proceedOnly()
-        check(TC.IDENT)
-        table.addArg(s.currentString(), -1)
-        proceedOnly()
+    while(next != TC.RPAR):
+        if next == TC.INT:
+            proceedOnly()
+            check(TC.IDENT)
+            table.addArg(s.currentString(), -1)
+            proceedOnly()
+            if(next == TC.COMMA):
+                proceedOnly()
     check(TC.RPAR)
     proceedOnly()
 
@@ -428,6 +433,8 @@ def STM():
         stmIf()
     elif next == TC.DO:
         stmDo()
+    elif next == TC.WHILE:
+        stmWhile()
     elif next == TC.LBRACE:
         stmBlock()
     elif next == TC.RETURN:
@@ -520,6 +527,26 @@ def stmDo():
         unexpectedTokenError()
     next = s.nextToken()
     addCode(Mnemonic.TJ, 0, here)
+
+
+def stmWhile():
+    global next, s, codeTable
+    next = s.nextToken()
+    here = currentCodeAddress() + 1
+    if next != TC.LPAR:
+        unexpectedTokenError()
+    next = s.nextToken()
+    COND()
+    if next != TC.RPAR:
+        unexpectedTokenError()
+    addCode(Mnemonic.FJ, 0, 0)
+    fj = currentCodeAddress()
+    next = s.nextToken()
+    STM()
+    # next = s.nextToken()
+    addCode(Mnemonic.J, 0, here)
+    j = currentCodeAddress()
+    codeTable[fj].arg2 = j+1
 
 
 def stmBlock():
