@@ -29,7 +29,7 @@ def main():
         print(file)
         # dir = os.path.dirname(__file__)
         hsm = ""
-        with open(file, mode="r",)as f:
+        with open(file, mode="r", encoding="utf-8")as f:
             # print(f.read())
             program = f.read()
             Lang.compile(program)

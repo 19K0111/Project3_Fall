@@ -7,12 +7,15 @@ fun int draw(int x){
     putint(m);
     // do {
     //     forward(d);
-    //     right(360 / x);
+    //     left(360 / x);
     //     m = m - 1;
     // } while (m > 0);
+    /* これはコメント*
+    これもコメント/
+    ここまでコメント */
     while (m > 0) {
         forward(d);
-        right(360 / x);
+        left(360/x);
         m = m - 1;
     }
     return 0;

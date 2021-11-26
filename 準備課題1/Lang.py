@@ -219,8 +219,19 @@ class Tokenizer:
                             nch = self.reader.nextChar()
                         self.skipWhitespace()
                         continue
-                    else:
-                        self.reader.backChar()
+                    self.reader.backChar()
+                    if(self.reader.nextChar() == '*'):
+                        # コメントの処理
+                        nch = '_'
+                        while(nch != '*'):
+                            nch = self.reader.nextChar()
+                            if(nch == '*'):
+                                nch = self.reader.nextChar()
+                                if(nch == '/'):
+                                    break
+                        self.skipWhitespace()
+                        continue
+                    self.reader.backChar()
                 if ch == '\0':
                     token = TC.EOF
                     break
@@ -563,6 +574,8 @@ def stmReturn():  # 手順3-1
     E()
     check(TC.SEMI)
     numArgs = table.getNumArgs()
+    allocSize = table.getAllocationSize()
+    addCode(Mnemonic.POP, 0, allocSize)
     addCode(Mnemonic.EF, 0, numArgs)
     proceedOnly()
 
