@@ -387,13 +387,17 @@ def PROCHEAD_Extract():  # ->FUN INT IDENT LPAR RPAR
 def BODY():  # -> LBRACE RBRACE (問題2)
     # -> LBRACE STMLIST RBRACE (問題3-1)
     # -> LBRACE DECLLIST STMLIST RBRACE (問題3-2)
-    global table
+    global table, _tmp
+    _tmp = []
 
     check(TC.LBRACE)
     proceedOnly()
     DECLLIST()
     allocSize = table.getAllocationSize()
     addCode(Mnemonic.PUSH, 0, allocSize)
+    while _tmp != []:
+        p = _tmp.pop(0)
+        addCode(p[0], p[1], p[2])
     STMLIST()   #
     table.debugDownLevel(False)
     check(TC.RBRACE)
@@ -411,8 +415,12 @@ def decl():  # DECL -> INT IDENT SEMI
     table.addVar(s.currentString(), table.level)
     # 手順3-3
     # 上記のaddVarの第2引数は、現在処理をしているレベル(0or1)を表す
-    proceed(TC.SEMI)
-    proceedOnly()
+    s_next = s.getnextToken()
+    if(s_next == TC.ASSIGN):
+        stmAssign(immidiate=True)
+    elif(s_next == TC.SEMI):
+        proceed(TC.SEMI)
+        proceedOnly()
 
 
 def DECLLIST():  # DECLLIST -> {DECL}
@@ -456,17 +464,20 @@ def STM():
         unexpectedTokenError()
 
 
-def stmAssign():
-    global next, s, table
+def stmAssign(immidiate: bool = False):
+    global next, s, table, _tmp
     var = s.currentString()
     proceed(TC.ASSIGN)
     proceedOnly()
-    E()
+    E(immidiate)
     entry = table.get(var)
     if var == None:
         undeclaredVariableError(var)
     """手順3-3: 大域変数の場合[STV 1 addr]が出力させる"""
-    addCode(Mnemonic.STV, table.level - entry.level, entry.address)
+    if(immidiate):  # 即時代入
+        _tmp.append((Mnemonic.STV, table.level - entry.level, entry.address))
+    else:
+        addCode(Mnemonic.STV, table.level - entry.level, entry.address)
 
     check(TC.SEMI)
     proceedOnly()
@@ -610,36 +621,48 @@ def stmTk(cmd):
 # E -> T {'+' T}
 
 
-def E():
-    global next
-    T()
+def E(immidiate: bool = False):
+    global next, _tmp
+    T(immidiate)
     while(True):
         if(next == TC.PLUS):
             next = s.nextToken()
-            T()
-            addCode(Mnemonic.AD, 0, 0)
+            T(immidiate)
+            if(immidiate):
+                _tmp.append((Mnemonic.AD, 0, 0))
+            else:
+                addCode(Mnemonic.AD, 0, 0)
         elif(next == TC.MINUS):
             next = s.nextToken()
-            T()
-            addCode(Mnemonic.SB, 0, 0)
+            T(immidiate)
+            if(immidiate):
+                _tmp.append((Mnemonic.SB, 0, 0))
+            else:
+                addCode(Mnemonic.SB, 0, 0)
         else:
             break
 
 # T -> F { '*' F}
 
 
-def T():
-    global next
-    F()
+def T(immidiate: bool = False):
+    global next, _tmp
+    F(immidiate)
     while(True):
         if(next == TC.MULT):
             next = s.nextToken()
-            F()
-            addCode(Mnemonic.ML, 0, 0)
+            F(immidiate)
+            if(immidiate):
+                _tmp.append((Mnemonic.ML, 0, 0))
+            else:
+                addCode(Mnemonic.ML, 0, 0)
         elif(next == TC.DIV):
             next = s.nextToken()
-            F()
-            addCode(Mnemonic.DV, 0, 0)
+            F(immidiate)
+            if(immidiate):
+                _tmp.append((Mnemonic.DV, 0, 0))
+            else:
+                addCode(Mnemonic.DV, 0, 0)
         else:
             break
 
@@ -647,8 +670,8 @@ def T():
 # F ->  ( E ) | NUM | IDENT
 
 
-def F():
-    global next, s
+def F(immidiate=False):
+    global next, s, _tmp
     if (next == TC.LPAR):
         next = s.nextToken()
         E()
@@ -657,23 +680,30 @@ def F():
         else:
             unexpectedTokenError()
     elif (next == TC.NUM):
-        addCode(Mnemonic.LDC, 0, int(s.currentString()))
+        if(immidiate):
+            _tmp.append((Mnemonic.LDC, 0, int(s.currentString())))
+        else:
+            addCode(Mnemonic.LDC, 0, int(s.currentString()))
         next = s.nextToken()
     elif (next == TC.IDENT):
-        fVarRefOrFuncall()
+        fVarRefOrFuncall(immidiate)
     else:
         unexpectedTokenError()
 
 
-def fVarRefOrFuncall():
-    global s, table
+def fVarRefOrFuncall(immidiate=False):
+    global s, table, _tmp
     name = s.currentString()
     proceedOnly()
     if next != TC.LPAR:  # IDENTのあとにLPARが来ない場合は変数参照の処理
         entry = table.get(name)
         if entry == None:
             undeclaredVariableError(name)
-        addCode(Mnemonic.LDV, table.level - entry.level, entry.address)
+        if(immidiate):
+            _tmp.append((Mnemonic.LDV, table.level -
+                         entry.level, entry.address))
+        else:
+            addCode(Mnemonic.LDV, table.level - entry.level, entry.address)
         """手順3-3:大域変数の場合[LDV 1 addr]を出力"""
     else:  # IDENTのあとにLPARが来た場合は関数呼び出しの処理
         """手順3-1:CALL命令の出力を行うためのコード"""

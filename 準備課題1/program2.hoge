@@ -1,9 +1,9 @@
 fun int draw(int x){
-    int m;
-    int d;
+    int m = x;
+    int d = 25 * 2 + 10 / 2 - 5;
     pen(0);
-    d = 50;
-    m = x;
+    // d = 50;
+    // m = x;
     putint(m);
     // do {
     //     forward(d);
@@ -15,15 +15,15 @@ fun int draw(int x){
     ここまでコメント */
     while (m > 0) {
         forward(d);
-        left(360/x);
+        left(360 / x);
         m = m - 1;
     }
     return 0;
 }
 
 fun int main(){
-    int n;
-    n = 40;
+    int n = 40;
+    // n = 40;
     draw(5);
     pen(1);
     forward(3 * n);
