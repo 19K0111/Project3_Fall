@@ -1,0 +1,33 @@
+fun int draw(int x){
+    pen(0);
+    if (x >= 50) {
+        // 正方形
+        forward(x);
+        right(90);
+        forward(x);
+        right(90);
+        forward(x);
+        right(90);
+        forward(x);
+        right(90);
+    } else {
+        // 三角形
+        forward(x);
+        left(120);
+        forward(x);
+        left(120);
+        forward(x);
+        left(120);
+    }
+    return 0;
+}
+
+fun int main(){
+    int n;
+    n = 40;
+    draw(n);
+    pen(1);
+    forward(2*n);
+    draw(n+10);    
+    return 0;
+}

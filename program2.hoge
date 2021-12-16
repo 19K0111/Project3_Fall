@@ -1,0 +1,32 @@
+fun int draw(int x){
+    int n = x;
+    int d = 25 * 2 + 10 / 2 - 5;
+    pen(0);
+    // d = 50;
+    // n = x;
+    putint(n);
+    // do {
+    //     forward(d);
+    //     left(360 / x);
+    //     n = n - 1;
+    // } while (n > 0);
+    /* これはコメント*
+    これもコメント/
+    ここまでコメント */
+    while (n > 0) {
+        forward(d);
+        left(360 / x);
+        n = n - 1;
+    }
+    return 0;
+}
+
+fun int main(){
+    int n = 40;
+    // n = 40;
+    draw(5);
+    pen(1);
+    forward(3 * n);
+    draw(6);
+    return 0;
+}
