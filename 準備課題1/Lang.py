@@ -311,8 +311,11 @@ code = ""
 
 
 def S():    # S ->DECLLIST STMLIST
-    global table, next, codeTable
+    global table, next, codeTable, _tmp, local_vars
     table = NameTable()
+    _tmp = []
+    # 同じ名前の変数を定義するとエラー -> シンボルテーブルを作る
+    local_vars = {}  # ローカル変数用の辞書
     DECLLIST()
     numGVs = table.nextAddress  # グローバル変数の数
     addCode(Mnemonic.PUSH, 0, numGVs)
@@ -321,7 +324,7 @@ def S():    # S ->DECLLIST STMLIST
     addCode(Mnemonic.POP, 0, numGVs+1)
     addCode(Mnemonic.HLT, 0, 0)
     PROCLIST()
-    codeTable[callSite].arg2 = table.get("main").address
+    codeTable[callSite].arg2 = table.get("main", "main").address
 
 
 def PROCLIST():
@@ -465,12 +468,12 @@ def STM():
 
 
 def stmAssign(immidiate: bool = False):
-    global next, s, table, _tmp
+    global next, s, table, _tmp, scope
     var = s.currentString()
     proceed(TC.ASSIGN)
     proceedOnly()
     E(immidiate)
-    entry = table.get(var)
+    entry = table.get(var, scope)
     if var == None:
         undeclaredVariableError(var)
     """手順3-3: 大域変数の場合[STV 1 addr]が出力させる"""
@@ -692,11 +695,11 @@ def F(immidiate=False):
 
 
 def fVarRefOrFuncall(immidiate=False):
-    global s, table, _tmp
+    global s, table, _tmp, scope
     name = s.currentString()
     proceedOnly()
     if next != TC.LPAR:  # IDENTのあとにLPARが来ない場合は変数参照の処理
-        entry = table.get(name)
+        entry = table.get(name, scope)
         if entry == None:
             undeclaredVariableError(name)
         if(immidiate):
@@ -710,7 +713,7 @@ def fVarRefOrFuncall(immidiate=False):
         proceedOnly()
         if next != TC.RPAR:
             E()
-        addCode(Mnemonic.CALL, 1, table.get(name).address)
+        addCode(Mnemonic.CALL, 1, table.get(name, name).address)
         proceedOnly()
 
 
@@ -773,11 +776,12 @@ def check(expected):
 
 
 class Name:
-    def __init__(self, id, t, addr, level):
+    def __init__(self, id, t, addr, level, scope=""):
         self.ident = id
         self.address = addr
         self.type = t
         self.level = level
+        self.scope = scope  # 変数のスコープ: str -> main, drawが入る
 
     def __str__(self):
         return "(id:{}, type:{}, address:{}, level:{})".format(self.ident, self.type.name, self.address, self.level)
@@ -794,38 +798,56 @@ class NameTable:
 
     def __str__(self):
         result = ""
-        for i in range(0, index):
+        for i in range(0, self.index):
             result += str(self.nameTable[i]) + "\n"
         return result[:-1]
 
-    def get(self, ident):
+    def get(self, ident, scope):
         """表からidentを探し、見つかったらNameインスタンスを返す。見つからない場合はNoneを返す。"""
         for entry in self.nameTable:
-            if entry.ident == ident:
+            if entry.ident == ident and entry.scope == scope:
                 return entry
         return None
 
     def addFunc(self, ident, codeAddress):
-        self.checkName(ident)
-        self.nameTable.append(Name(ident, Type.FUNC, codeAddress, 0))
+        global scope
+        scope = ident
+        self.checkName(ident, scope)
+        self.nameTable.append(Name(ident, Type.FUNC, codeAddress, 0, ident))
         self.index += 1
 
     def addVar(self, ident, level):
         size = 1
-        self.checkName(ident)
         ret = self.nextAddress
-        self.nameTable.append(Name(ident, Type.VAR, self.nextAddress, level))
+        func_flag = False
+        scope = ""
+        for s in reversed(self.nameTable):
+            if (s.type == Type.FUNC and not func_flag):
+                func_flag = True
+                scope = s.ident
+                break
+        self.checkName(ident, scope)
+        self.nameTable.append(
+            Name(ident, Type.VAR, self.nextAddress, level, scope))
         self.index += 1
         self.nextAddress += size
         return ret
 
     def addArg(self, ident, address):
-        self.checkName(ident)
-        self.nameTable.append(Name(ident, Type.ARG, address, self.level))
+        func_flag = False
+        scope = ""
+        for s in reversed(self.nameTable):
+            if (s.type == Type.FUNC and not func_flag):
+                func_flag = True
+                scope = s.ident
+                break
+        self.checkName(ident, scope)
+        self.nameTable.append(
+            Name(ident, Type.ARG, address, self.level, scope))
         self.index += 1
 
-    def checkName(self, ident):
-        if self.get(ident) != None:
+    def checkName(self, ident, scope):
+        if self.get(ident, scope) != None:
             raise Exception("その名前はすでに登録されています。addName : " +
                             ident)  # 適切に書き直す必要あり
 
