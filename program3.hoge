@@ -1,0 +1,8 @@
+fun int sub(int x, int y){
+    return x - y;
+}
+
+fun int main(){
+    putint(sub(450, 300));
+    return 0;
+}

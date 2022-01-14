@@ -348,14 +348,17 @@ def PROCHEAD():
     table.upLevel()
     proceed(TC.LPAR)
     proceedOnly()
+    varAddress = -1
     while(next != TC.RPAR):
         if next == TC.INT:
             proceedOnly()
             check(TC.IDENT)
-            table.addArg(s.currentString(), -1)
+            table.addArg(s.currentString(), varAddress)
+            varAddress -= 1
             proceedOnly()
             if(next == TC.COMMA):
                 proceedOnly()
+    # table.nextAddress -= 1
     check(TC.RPAR)
     proceedOnly()
 
@@ -446,6 +449,11 @@ def STM():
             stmAssign()
         else:
             E()
+            while(s.currentToken() == TC.NUM):
+                E()
+                if(next == TC.RPAR):
+                    next = s.nextToken()
+                    break
             if (s.currentToken() != TC.SEMI):
                 unexpectedTokenError()
             next = s.nextToken()
@@ -589,8 +597,8 @@ def stmReturn():  # 手順3-1
     check(TC.SEMI)
     numArgs = table.getNumArgs()
     allocSize = table.getAllocationSize()
-    addCode(Mnemonic.POP, 0, allocSize)
     addCode(Mnemonic.EF, 0, numArgs)
+    addCode(Mnemonic.POP, 0, allocSize)
     proceedOnly()
 
 
@@ -711,8 +719,10 @@ def fVarRefOrFuncall(immidiate=False):
     else:  # IDENTのあとにLPARが来た場合は関数呼び出しの処理
         """手順3-1:CALL命令の出力を行うためのコード"""
         proceedOnly()
-        if next != TC.RPAR:
+        while next != TC.RPAR:
             E()
+            if(next == TC.COMMA):
+                proceedOnly()
         addCode(Mnemonic.CALL, 1, table.get(name, name).address)
         proceedOnly()
 
@@ -834,6 +844,7 @@ class NameTable:
         return ret
 
     def addArg(self, ident, address):
+        # size = 1
         func_flag = False
         scope = ""
         for s in reversed(self.nameTable):
@@ -845,6 +856,7 @@ class NameTable:
         self.nameTable.append(
             Name(ident, Type.ARG, address, self.level, scope))
         self.index += 1
+        # self.nextAddress += size
 
     def checkName(self, ident, scope):
         if self.get(ident, scope) != None:
