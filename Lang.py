@@ -720,9 +720,12 @@ def fVarRefOrFuncall(immidiate=False):
         """手順3-1:CALL命令の出力を行うためのコード"""
         proceedOnly()
         while next != TC.RPAR:
-            E()
+            E(True)
             if(next == TC.COMMA):
                 proceedOnly()
+        while _tmp != []:
+            p = _tmp.pop()
+            addCode(p[0], p[1], p[2])
         addCode(Mnemonic.CALL, 1, table.get(name, name).address)
         proceedOnly()
 
