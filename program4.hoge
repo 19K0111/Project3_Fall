@@ -10,6 +10,6 @@ fun int fact(int x){
 
 fun int main(){
     int t = 3;
-    putint(fact(t * 2));
+    putint(fact(7 % t * 8));
     return 0;
 }

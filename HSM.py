@@ -16,12 +16,13 @@ class OP(Enum):
     SB = 33  # -
     ML = 34  # *
     DV = 35  # /
-    EQ = 36  # ==
-    NE = 37  # !=
-    LT = 38  # <
-    GT = 39  # >
-    LE = 40  # <=
-    GE = 41  # >=
+    MD = 36
+    EQ = 37  # ==
+    NE = 38  # !=
+    LT = 39  # <
+    GT = 40  # >
+    LE = 41  # <=
+    GE = 42  # >=
 
     WNL = 64
     WRI = 65
@@ -83,6 +84,9 @@ class SimpleHSM:
                 sp -= 1
             elif code[pc] == OP.DV.value:
                 s[sp-1] = s[sp-1] / s[sp]
+                sp -= 1
+            elif code[pc] == OP.MD.value:
+                s[sp-1] = s[sp-1] % s[sp]
                 sp -= 1
             elif code[pc] == OP.WRI.value:
                 print(s[sp])
@@ -268,7 +272,7 @@ class HsmAssembler:
         code.append(operand2)
 
     def makeOpcodeMap(self):
-        self.opcodeMap = {Mnemonic.LDC.name: OP.LDC.value, Mnemonic.WNL.name: OP.WNL.value, Mnemonic.WRI.name: OP.WRI.value, Mnemonic.HLT.name: OP.HLT.value, Mnemonic.AD.name: OP.AD.value, Mnemonic.SB.name: OP.SB.value, Mnemonic.ML.name: OP.ML.value, Mnemonic.DV.name: OP.DV.value, Mnemonic.PUSH.name: OP.PUSH.value, Mnemonic.POP.name: OP.POP.value, Mnemonic.NE.name: OP.NE.value, Mnemonic.EQ.name: OP.EQ.value, Mnemonic.LT.name: OP.LT.value, Mnemonic.GT.name: OP.GT.value, Mnemonic.LE.name: OP.LE.value, Mnemonic.GE.name: OP.GE.value, Mnemonic.J.name: OP.J.value, Mnemonic.FJ.name: OP.FJ.value, Mnemonic.TJ.name: OP.TJ.value, Mnemonic.LDV.name: OP.LDV.value, Mnemonic.STV.name: OP.STV.value,
+        self.opcodeMap = {Mnemonic.LDC.name: OP.LDC.value, Mnemonic.WNL.name: OP.WNL.value, Mnemonic.WRI.name: OP.WRI.value, Mnemonic.HLT.name: OP.HLT.value, Mnemonic.AD.name: OP.AD.value, Mnemonic.SB.name: OP.SB.value, Mnemonic.ML.name: OP.ML.value, Mnemonic.DV.name: OP.DV.value, Mnemonic.MD.name: OP.MD.value, Mnemonic.PUSH.name: OP.PUSH.value, Mnemonic.POP.name: OP.POP.value, Mnemonic.NE.name: OP.NE.value, Mnemonic.EQ.name: OP.EQ.value, Mnemonic.LT.name: OP.LT.value, Mnemonic.GT.name: OP.GT.value, Mnemonic.LE.name: OP.LE.value, Mnemonic.GE.name: OP.GE.value, Mnemonic.J.name: OP.J.value, Mnemonic.FJ.name: OP.FJ.value, Mnemonic.TJ.name: OP.TJ.value, Mnemonic.LDV.name: OP.LDV.value, Mnemonic.STV.name: OP.STV.value,
                           Mnemonic.CALL.name: OP.CALL.value,
                           Mnemonic.UP.name: OP.UP.value, Mnemonic.DOWN.name: OP.DOWN.value, Mnemonic.FWD.name: OP.FWD.value, Mnemonic.BACK.name: OP.BACK.value, Mnemonic.LEFT.name: OP.LEFT.value, Mnemonic.RIGHT.name: OP.RIGHT.value, Mnemonic.PEN.name: OP.PEN.value,
                           Mnemonic.EF.name: OP.EF.value}
@@ -276,6 +280,7 @@ class HsmAssembler:
 
 t = turtle.Pen()
 screen = turtle.Screen()
+turtle.colormode(255)
 
 NUMTEST = 9
 q = [""]*NUMTEST

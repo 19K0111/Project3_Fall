@@ -12,6 +12,7 @@ class Mnemonic(Enum):
     SB = 33
     ML = 6
     DV = 34
+    MD = 35
     EQ = 7
     NE = 8
     LT = 9
@@ -60,6 +61,7 @@ class TC(Enum):
     MINUS = 34
     MULT = 12
     DIV = 35
+    MOD = 37
     EQ = 13
     NE = 14
     LT = 15
@@ -140,6 +142,8 @@ class Tokenizer:
             ret = TC.MULT
         elif ch == '/':
             ret = TC.DIV
+        elif ch == '%':
+            ret = TC.MOD
         elif ch == ';':
             ret = TC.SEMI
         elif ch == ',':
@@ -675,6 +679,13 @@ def T(immidiate: bool = False):
                 _tmp.append((Mnemonic.DV, 0, 0))
             else:
                 addCode(Mnemonic.DV, 0, 0)
+        elif(next == TC.MOD):
+            next = s.nextToken()
+            F(immidiate)
+            if(immidiate):
+                _tmp.append((Mnemonic.MD, 0, 0))
+            else:
+                addCode(Mnemonic.MD, 0, 0)
         else:
             break
 
