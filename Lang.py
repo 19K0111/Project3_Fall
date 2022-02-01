@@ -311,9 +311,10 @@ code = ""
 
 
 def S():    # S ->DECLLIST STMLIST
-    global table, next, codeTable, _tmp, local_vars
+    global table, next, codeTable, _tmp, local_vars, _vars
     table = NameTable()
     _tmp = []
+    _vars = []  # 関数呼び出しのときのスタック
     # 同じ名前の変数を定義するとエラー -> シンボルテーブルを作る
     local_vars = {}  # ローカル変数用の辞書
     DECLLIST()
@@ -698,12 +699,16 @@ def F(immidiate=False):
         next = s.nextToken()
     elif (next == TC.IDENT):
         fVarRefOrFuncall(immidiate)
+        # if(s.getnextToken() == TC.LPAR):  # IDENTのあとにLPARが来た場合は関数呼び出しの処理
+        #     fVarRefOrFuncall(True)
+        # else:  # IDENTのあとにLPARが来ない場合は変数参照の処理
+        #     fVarRefOrFuncall(False)
     else:
         unexpectedTokenError()
 
 
 def fVarRefOrFuncall(immidiate=False):
-    global s, table, _tmp, scope
+    global s, table, _tmp, scope, _vars
     name = s.currentString()
     proceedOnly()
     if next != TC.LPAR:  # IDENTのあとにLPARが来ない場合は変数参照の処理
@@ -721,11 +726,15 @@ def fVarRefOrFuncall(immidiate=False):
         proceedOnly()
         while next != TC.RPAR:
             E(True)
+            _vars.append(_tmp)
+            _tmp = []
             if(next == TC.COMMA):
                 proceedOnly()
-        while _tmp != []:
-            p = _tmp.pop()
-            addCode(p[0], p[1], p[2])
+        while _vars != []:
+            q = _vars.pop()
+            while q != []:
+                p = q.pop(0)
+                addCode(p[0], p[1], p[2])
         addCode(Mnemonic.CALL, 1, table.get(name, name).address)
         proceedOnly()
 

@@ -1,0 +1,15 @@
+// 再帰関数
+
+fun int fact(int x){
+    if (x == 1) {
+        return x;
+    } else {
+        return x * fact(x - 1);
+    }
+}
+
+fun int main(){
+    int t = 3;
+    putint(fact(t * 2));
+    return 0;
+}
