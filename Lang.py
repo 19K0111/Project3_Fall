@@ -40,6 +40,10 @@ class Mnemonic(Enum):
     LEFT = 30
     RIGHT = 31
     PEN = 32
+    PCLR = 36  # PenColor
+    FCLR = 37  # FillColor
+    BFIL = 38  # BeginFill
+    EFIL = 39  # EndFill
 
 
 class TC(Enum):
@@ -83,6 +87,10 @@ class TC(Enum):
     LEFT = 31
     RIGHT = 32
     PEN = 33
+    PCLR = 38  # PenColor
+    FCLR = 39  # FillColor
+    BFIL = 40  # BeginFill
+    EFIL = 41  # EndFill
 
 
 class Type(Enum):
@@ -110,9 +118,10 @@ class Tokenizer:
     def setupKeyword(self):
         self.keyTable = {}
         keys = ["int", "putint", "if", "else", "do", "while", "return", "fun",
-                "up", "down", "forward", "backward", "left", "right", "pen"]
+                "up", "down", "forward", "backward", "left", "right", "pen", "pencolor", "fillcolor", "beginfill", "endfill"]
         tclasses = [TC.INT, TC.PUTINT, TC.IF, TC.ELSE,
-                    TC.DO, TC.WHILE, TC.RETURN, TC.FUN, TC.UP, TC.DOWN, TC.FWD, TC.BACK, TC.LEFT, TC.RIGHT, TC.PEN]
+                    TC.DO, TC.WHILE, TC.RETURN, TC.FUN, TC.UP, TC.DOWN, TC.FWD, TC.BACK, TC.LEFT, TC.RIGHT, TC.PEN,
+                    TC.PCLR, TC.FCLR, TC.BFIL, TC.EFIL]
         for i in range(len(keys)):
             self.keyTable[keys[i]] = tclasses[i]
 
@@ -476,6 +485,10 @@ def STM():
         stmReturn()
     elif next == TC.UP or next == TC.DOWN or next == TC.FWD or next == TC.BACK or next == TC.LEFT or next == TC.RIGHT or next == TC.PEN:
         stmTk(next)
+    elif next == TC.PCLR or next == TC.FCLR:
+        stmColor(next)
+    elif next == TC.BFIL or next == TC.EFIL:
+        stmFill(next)
     else:
         unexpectedTokenError()
 
@@ -633,6 +646,51 @@ def stmTk(cmd):
         unexpectedTokenError()
     next = s.nextToken()
 
+
+def stmColor(cmd):
+    global next, s, _tmp
+    if(s.nextToken() != TC.LPAR):
+        unexpectedTokenError()
+    next = s.nextToken()
+    while next != TC.RPAR:
+        E(True)
+        _vars.append(_tmp)
+        _tmp = []
+        if(next == TC.COMMA):
+            proceedOnly()
+    while _vars != []:
+        q = _vars.pop()
+        while q != []:
+            p = q.pop(0)
+            addCode(p[0], p[1], p[2])
+    # E(True)  # COND() #
+    if(cmd == TC.PCLR):
+        addCode(Mnemonic.PCLR, 0, 0)
+    elif(cmd == TC.FCLR):
+        addCode(Mnemonic.FCLR, 0, 0)
+    if (next != TC.RPAR):
+        unexpectedTokenError()
+    if (s.nextToken() != TC.SEMI):
+        unexpectedTokenError()
+    proceedOnly()
+
+
+def stmFill(cmd):
+    global next, s
+    if(s.nextToken() != TC.LPAR):
+        unexpectedTokenError()
+    next = s.nextToken()
+    if(next != TC.RPAR):
+        E()  # COND() #
+    if(cmd == TC.BFIL):
+        addCode(Mnemonic.BFIL, 0, 0)
+    elif(cmd == TC.EFIL):
+        addCode(Mnemonic.EFIL, 0, 0)
+    if (next != TC.RPAR):
+        unexpectedTokenError()
+    if (s.nextToken() != TC.SEMI):
+        unexpectedTokenError()
+    next = s.nextToken()
 
 # E -> T {'+' T}
 
