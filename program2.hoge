@@ -32,5 +32,13 @@ fun int main(){
     beginfill();
     draw(6);
     endfill();
+    right(90);
+    hide();
+    pen(1);
+    forward(100);
+    pen(0);
+    circle(50);
+    show();
+    position(100,0);
     return 0;
 }

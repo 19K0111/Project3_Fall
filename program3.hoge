@@ -3,6 +3,8 @@ fun int sub(int x, int y){
 }
 
 fun int main(){
+    int p;
+    p = -57;
     putint(sub(450, 300));
     return 0;
 }

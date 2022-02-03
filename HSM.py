@@ -16,7 +16,7 @@ class OP(Enum):
     SB = 33  # -
     ML = 34  # *
     DV = 35  # /
-    MD = 36
+    MD = 36  # %
     EQ = 37  # ==
     NE = 38  # !=
     LT = 39  # <
@@ -38,6 +38,9 @@ class OP(Enum):
     FCLR = 74
     BFIL = 75
     EFIL = 76
+    CIR = 77
+    POS = 78
+    VIS = 79
 
     J = 128
     FJ = 129
@@ -122,7 +125,7 @@ class SimpleHSM:
                     raise Exception(f"illegal argument: pen({s[sp]})")
                 sp -= 1
             elif code[pc] == OP.PCLR.value:
-                print(f"pencolor({s[sp]}, {s[sp-1]}, {s[sp-2]})")
+                # print(f"pencolor({s[sp]}, {s[sp-1]}, {s[sp-2]})")
                 t.pencolor(s[sp], s[sp-1], s[sp-2])
             elif code[pc] == OP.FCLR.value:
                 t.fillcolor(s[sp], s[sp-1], s[sp-2])
@@ -130,6 +133,18 @@ class SimpleHSM:
                 t.begin_fill()
             elif code[pc] == OP.EFIL.value:
                 t.end_fill()
+            elif code[pc] == OP.CIR.value:
+                t.circle(int(s[sp]))
+            elif code[pc] == OP.POS.value:
+                t.goto(int(s[sp]), int(s[sp-1]))
+            elif code[pc] == OP.VIS.value:
+                if (code[pc+2] == 0):
+                    t.hideturtle()
+                elif(code[pc+2] == 1):
+                    t.showturtle()
+                else:
+                    raise Exception(
+                        f"illegal argument: VIS 0 {code[pc+2]}")
             elif code[pc] == OP.NE.value:
                 sp -= 1
                 if s[sp] != s[sp+1]:
@@ -286,7 +301,7 @@ class HsmAssembler:
     def makeOpcodeMap(self):
         self.opcodeMap = {Mnemonic.LDC.name: OP.LDC.value, Mnemonic.WNL.name: OP.WNL.value, Mnemonic.WRI.name: OP.WRI.value, Mnemonic.HLT.name: OP.HLT.value, Mnemonic.AD.name: OP.AD.value, Mnemonic.SB.name: OP.SB.value, Mnemonic.ML.name: OP.ML.value, Mnemonic.DV.name: OP.DV.value, Mnemonic.MD.name: OP.MD.value, Mnemonic.PUSH.name: OP.PUSH.value, Mnemonic.POP.name: OP.POP.value, Mnemonic.NE.name: OP.NE.value, Mnemonic.EQ.name: OP.EQ.value, Mnemonic.LT.name: OP.LT.value, Mnemonic.GT.name: OP.GT.value, Mnemonic.LE.name: OP.LE.value, Mnemonic.GE.name: OP.GE.value, Mnemonic.J.name: OP.J.value, Mnemonic.FJ.name: OP.FJ.value, Mnemonic.TJ.name: OP.TJ.value, Mnemonic.LDV.name: OP.LDV.value, Mnemonic.STV.name: OP.STV.value,
                           Mnemonic.CALL.name: OP.CALL.value,
-                          Mnemonic.UP.name: OP.UP.value, Mnemonic.DOWN.name: OP.DOWN.value, Mnemonic.FWD.name: OP.FWD.value, Mnemonic.BACK.name: OP.BACK.value, Mnemonic.LEFT.name: OP.LEFT.value, Mnemonic.RIGHT.name: OP.RIGHT.value, Mnemonic.PEN.name: OP.PEN.value, Mnemonic.PEN.name: OP.PEN.value, Mnemonic.PCLR.name: OP.PCLR.value, Mnemonic.FCLR.name: OP.FCLR.value, Mnemonic.BFIL.name: OP.BFIL.value, Mnemonic.EFIL.name: OP.EFIL.value,
+                          Mnemonic.UP.name: OP.UP.value, Mnemonic.DOWN.name: OP.DOWN.value, Mnemonic.FWD.name: OP.FWD.value, Mnemonic.BACK.name: OP.BACK.value, Mnemonic.LEFT.name: OP.LEFT.value, Mnemonic.RIGHT.name: OP.RIGHT.value, Mnemonic.PEN.name: OP.PEN.value, Mnemonic.PEN.name: OP.PEN.value, Mnemonic.PCLR.name: OP.PCLR.value, Mnemonic.FCLR.name: OP.FCLR.value, Mnemonic.BFIL.name: OP.BFIL.value, Mnemonic.EFIL.name: OP.EFIL.value, Mnemonic.CIR.name: OP.CIR.value, Mnemonic.POS.name: OP.POS.value, Mnemonic.VIS.name: OP.VIS.value,
                           Mnemonic.EF.name: OP.EF.value}
 
 

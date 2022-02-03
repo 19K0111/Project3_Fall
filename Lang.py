@@ -44,6 +44,9 @@ class Mnemonic(Enum):
     FCLR = 37  # FillColor
     BFIL = 38  # BeginFill
     EFIL = 39  # EndFill
+    CIR = 40  # Circle
+    POS = 41  # Position
+    VIS = 42  # Visible (0:false 1:true)
 
 
 class TC(Enum):
@@ -91,6 +94,9 @@ class TC(Enum):
     FCLR = 39  # FillColor
     BFIL = 40  # BeginFill
     EFIL = 41  # EndFill
+    CIR = 42  # Circle
+    POS = 43  # Position
+    VIS = 44  # Visible (0:false 1:true)
 
 
 class Type(Enum):
@@ -118,10 +124,11 @@ class Tokenizer:
     def setupKeyword(self):
         self.keyTable = {}
         keys = ["int", "putint", "if", "else", "do", "while", "return", "fun",
-                "up", "down", "forward", "backward", "left", "right", "pen", "pencolor", "fillcolor", "beginfill", "endfill"]
+                "up", "down", "forward", "backward", "left", "right", "pen", "pencolor", "fillcolor", "beginfill", "endfill",
+                "circle", "position", "hide", "show"]
         tclasses = [TC.INT, TC.PUTINT, TC.IF, TC.ELSE,
                     TC.DO, TC.WHILE, TC.RETURN, TC.FUN, TC.UP, TC.DOWN, TC.FWD, TC.BACK, TC.LEFT, TC.RIGHT, TC.PEN,
-                    TC.PCLR, TC.FCLR, TC.BFIL, TC.EFIL]
+                    TC.PCLR, TC.FCLR, TC.BFIL, TC.EFIL, TC.CIR, TC.POS, TC.VIS, TC.VIS]
         for i in range(len(keys)):
             self.keyTable[keys[i]] = tclasses[i]
 
@@ -483,11 +490,11 @@ def STM():
         stmBlock()
     elif next == TC.RETURN:
         stmReturn()
-    elif next == TC.UP or next == TC.DOWN or next == TC.FWD or next == TC.BACK or next == TC.LEFT or next == TC.RIGHT or next == TC.PEN:
+    elif next == TC.UP or next == TC.DOWN or next == TC.FWD or next == TC.BACK or next == TC.LEFT or next == TC.RIGHT or next == TC.PEN or next == TC.CIR:
         stmTk(next)
-    elif next == TC.PCLR or next == TC.FCLR:
+    elif next == TC.PCLR or next == TC.FCLR or next == TC.POS:
         stmColor(next)
-    elif next == TC.BFIL or next == TC.EFIL:
+    elif next == TC.BFIL or next == TC.EFIL or next == TC.VIS:
         stmFill(next)
     else:
         unexpectedTokenError()
@@ -640,6 +647,8 @@ def stmTk(cmd):
         addCode(Mnemonic.RIGHT, 0, 0)
     elif(cmd == TC.PEN):
         addCode(Mnemonic.PEN, 0, 0)
+    elif(cmd == TC.CIR):
+        addCode(Mnemonic.CIR, 0, 0)
     if (next != TC.RPAR):
         unexpectedTokenError()
     if (s.nextToken() != TC.SEMI):
@@ -668,6 +677,8 @@ def stmColor(cmd):
         addCode(Mnemonic.PCLR, 0, 0)
     elif(cmd == TC.FCLR):
         addCode(Mnemonic.FCLR, 0, 0)
+    elif(cmd == TC.POS):
+        addCode(Mnemonic.POS, 0, 0)
     if (next != TC.RPAR):
         unexpectedTokenError()
     if (s.nextToken() != TC.SEMI):
@@ -677,6 +688,7 @@ def stmColor(cmd):
 
 def stmFill(cmd):
     global next, s
+    func = s.currentString()
     if(s.nextToken() != TC.LPAR):
         unexpectedTokenError()
     next = s.nextToken()
@@ -686,6 +698,11 @@ def stmFill(cmd):
         addCode(Mnemonic.BFIL, 0, 0)
     elif(cmd == TC.EFIL):
         addCode(Mnemonic.EFIL, 0, 0)
+    elif(cmd == TC.VIS):
+        if(func == "hide"):
+            addCode(Mnemonic.VIS, 0, 0)
+        elif(func == "show"):
+            addCode(Mnemonic.VIS, 0, 1)
     if (next != TC.RPAR):
         unexpectedTokenError()
     if (s.nextToken() != TC.SEMI):
@@ -753,6 +770,11 @@ def T(immidiate: bool = False):
 
 def F(immidiate=False):
     global next, s, _tmp
+    sign = ""
+    if(next == TC.PLUS or next == TC.MINUS):
+        sign = s.currentString()
+        proceedOnly()
+        # s.currentString()=sign+s.currentString()
     if (next == TC.LPAR):
         next = s.nextToken()
         E()
@@ -762,9 +784,9 @@ def F(immidiate=False):
             unexpectedTokenError()
     elif (next == TC.NUM):
         if(immidiate):
-            _tmp.append((Mnemonic.LDC, 0, int(s.currentString())))
+            _tmp.append((Mnemonic.LDC, 0, int(sign+s.currentString())))
         else:
-            addCode(Mnemonic.LDC, 0, int(s.currentString()))
+            addCode(Mnemonic.LDC, 0, int(sign+s.currentString()))
         next = s.nextToken()
     elif (next == TC.IDENT):
         fVarRefOrFuncall(immidiate)
